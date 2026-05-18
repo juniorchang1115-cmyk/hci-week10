@@ -1,0 +1,562 @@
+
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparring AI | 別讓 AI 盲從，讓它成為你的陪練。</title>
+    
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            /* Warm & Soft Palette - Based on 'Warm & Soft' design direction */
+            --bg:      oklch(97% 0.018 70);
+            --surface: oklch(99% 0.008 70);
+            --fg:      oklch(22% 0.02 50);
+            --muted:   oklch(50% 0.018 50);
+            --border:  oklch(90% 0.014 70);
+            --accent:  oklch(64% 0.13 28);
+
+            --font-display: 'Newsreader', 'Iowan Old Style', 'Charter', Georgia, serif;
+            --font-body:    'Söhne', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            
+            --max-width: 1000px;
+            --gutter: 24px;
+        }
+
+        /* Typography Initialization */
+        @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 500;
+            line-height: 1.2;
+            text-wrap: balance;
+        }
+
+        p {
+            max-width: 65ch;
+            text-wrap: pretty;
+        }
+
+        /* Layout Utilities */
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--gutter);
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        .section-tag {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero .tagline {
+            font-size: 1.25rem;
+            color: var(--muted);
+            margin-bottom: 48px;
+            margin-inline: auto;
+        }
+
+        /* UI Mockup - "Sparring Mode" Visualization */
+        .mockup-container {
+            margin-top: 60px;
+            position: relative;
+            max-width: 800px;
+            margin-inline: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            box-shadow: 0 40px 80px -20px oklch(0% 0 0 / 5%);
+        }
+
+        .mockup-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .mockup-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .chat-bubble {
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            max-width: 85%;
+            position: relative;
+        }
+
+        .chat-bubble.ai {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            color: var(--muted);
+        }
+
+        .chat-bubble.sparring {
+            background: var(--surface);
+            border: 1.5px solid var(--accent);
+            align-self: center;
+            width: 100%;
+            max-width: none;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 10px 30px -10px oklch(64% 0.13 28 / 15%);
+        }
+
+        .sparring-kicker {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Narrative Sections */
+        .founder-story {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 100px;
+            align-items: flex-start;
+        }
+
+        .grid h2 {
+            font-size: 2.25rem;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+            section {
+                padding: 80px 0;
+            }
+            .grid h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Service Cards */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 900px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .service-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .service-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px oklch(0% 0 0 / 5%);
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            color: var(--fg);
+        }
+
+        .service-card p {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        /* Registration Form with React Integration */
+        .registration {
+            background: var(--bg);
+        }
+
+        .form-container {
+            max-width: 540px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 60px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+
+        @media (max-width: 600px) {
+            .form-container {
+                padding: 40px 24px;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            color: var(--fg);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 0 0 4px oklch(64% 0.13 28 / 5%);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--accent);
+            color: white;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Success State */
+        .success-state {
+            text-align: center;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+        }
+
+        .flourish {
+            color: var(--accent);
+            font-family: var(--font-display);
+            font-style: italic;
+            margin: 0 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <span class="section-tag" style="animation: slideUp 0.8s ease;">Sparring AI — Launching 2024</span>
+            <h1>Sparring AI</h1>
+            <p class="tagline">Don't let AI just execute. Let it spar with you.<br>(別讓 AI 盲從，讓它成為你的陪練。)</p>
+            
+            <div class="mockup-container">
+                <div class="mockup-header">
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                    <div class="mockup-dot"></div>
+                </div>
+                <div class="mockup-content">
+                    <div class="chat-bubble ai">
+                        「好的，我已經幫你寫好了 3000 字的產品企劃書。包含市場分析、競爭對手研究...」
+                    </div>
+                    <div class="chat-bubble sparring">
+                        <span class="sparring-kicker">SPARRING MODE — 深度挑戰</span>
+                        「等一下。在直接產出之前，我想先挑戰你：這個產品對 PM 最大的痛點真的只是『效率』嗎？還是『決策質量』？如果我們把第 3 章的假設推翻，你的策略會如何改變？」
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Founder Story Section -->
+    <section class="founder-story">
+        <div class="container grid">
+            <div class="sticky-top">
+                <span class="section-tag">為什麼是我</span>
+                <h2>從 AI 的盲從中，<br>尋回人類決策的尊嚴。</h2>
+            </div>
+            <div>
+                <p>身為重度使用 AI 的資工系學生，我深知當 AI 變成一個只會盲從產出「牛頭不對馬嘴」廢話的工具時，反而會逼得人類花更多時間去修正。這種無謂的循環，正在消耗產品團隊的創造力。</p>
+                <br>
+                <p>結合 <strong>CS (資訊工程)</strong> 的底層技術邏輯與 <strong>HCI (人機互動)</strong> 的設計思維，我決定成立 <strong>Sparring AI</strong>。我的使命不是讓 AI 取代人類思考，而是設計出能真正引導、衝撞並提升人類決策品質的互動機制。</p>
+                <br>
+                <p>我們追求的是「有意義的摩擦力 (Meaningful Friction)」，讓 AI 不再只是執行者，而是你最嚴厲也最懂你的思考教練。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audience Section -->
+    <section class="audience">
+        <div class="container grid">
+            <div>
+                <span class="section-tag">服務對象</span>
+                <h2>給那些被死線壓迫，<br>卻仍堅持質量的團隊。</h2>
+            </div>
+            <div>
+                <p>目前的「初階 PM 與產品團隊」正面臨一個困境：受夠了 AI 總是給出缺乏脈絡的空洞長文，導致最後只能無奈地回到「純手工找資料、寫大綱才敢餵給 AI」的沒效率輪迴。</p>
+                <br>
+                <p>Sparring AI 為受困於 AI 幻覺與無效對話的團隊而生。我們不賣弄技術焦慮，我們提供安心、冷靜且充滿智慧的決策支持。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <span class="section-tag">具體服務內容</span>
+            <h2 style="margin-bottom: 20px;">讓 AI 成為真正的陪練夥伴</h2>
+            <p style="color: var(--muted); margin-bottom: 40px;">我們從人機互動的核心出發，重新定義企業與 AI 的協作關係。</p>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <span class="sparring-kicker">01 診斷</span>
+                    <h3>HCI 人機互動<br>診斷顧問</h3>
+                    <p>檢視企業現有的 AI 工具鏈，找出「過度順滑導致 AI 幻覺」的災難點，重新導入防呆機制與決策引導。</p>
+                </div>
+                <div class="service-card">
+                    <span class="sparring-kicker">02 開發</span>
+                    <h3>AI 協作介面<br>客製化開發</h3>
+                    <p>結合生成式 UI (GenUI) 與動態表單技術，將靜態對話框改造成能深度互動、引導決策的「陪練夥伴系統」。</p>
+                </div>
+                <div class="service-card">
+                    <span class="sparring-kicker">03 導入</span>
+                    <h3>HCI 團隊<br>導入顧問</h3>
+                    <p>協助團隊建立正確的 AI 協作心智模型，從底層邏輯重構人機互動流，確保 AI 的導入能轉化為真實的產出價值。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section class="registration">
+        <div class="container">
+            <div class="form-container" id="registration-root">
+                <!-- React App Mounts Here -->
+                <div style="text-align: center; color: var(--muted);">載入報名表單中...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Sparring AI<span class="flourish">/</span>Human-Centric Intelligence</p>
+            <p style="margin-top: 8px; font-size: 0.75rem; opacity: 0.7;">Designed with Philosophy and Code.</p>
+        </div>
+    </footer>
+
+    <!-- Interactive Layer -->
+    <script type="text/babel">
+        const { useState } = React;
+
+        function RegistrationForm() {
+            const [submitted, setSubmitted] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [formData, setFormData] = useState({ name: '', email: '' });
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData),
+                    });
+                    if (response.ok) {
+                        setSubmitted(true);
+                    } else {
+                        alert('提交失敗，請稍後再試。');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('發生錯誤，請檢查網路連線。');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.name]: e.target.value });
+            };
+
+            if (submitted) {
+                return (
+                    <div className="success-state">
+                        <div style={{ fontSize: '3rem', marginBottom: '24px' }}>✨</div>
+                        <span className="section-tag">報名成功</span>
+                        <h2 style={{ marginBottom: '16px' }}>您的陪練旅程即將展開</h2>
+                        <p style={{ marginInline: 'auto', color: 'var(--muted)' }}>
+                            感謝您的信任。Sparring AI 的團隊將在 48 小時內與您聯繫，
+                            討論如何將「有意義的摩擦力」帶入您的團隊決策流程。
+                        </p>
+                        <div style={{ marginTop: '32px', borderTop: '1px solid var(--border)', paddingTop: '24px' }}>
+                            <p style={{ fontSize: '0.85rem' }}>期待與您對話，<strong>{formData.name}</strong>。</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{ textAlign: 'center' }}>
+                    <span className="section-tag">立即加入</span>
+                    <h2 style={{ marginBottom: '12px' }}>預約您的 AI 陪練診斷</h2>
+                    <p style={{ color: 'var(--muted)', marginBottom: '40px', fontSize: '0.95rem' }}>
+                        留下聯絡資訊，讓您的團隊停止盲從，開始與 AI 進行有意義的衝撞。
+                    </p>
+                    
+                    <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
+                        <div className="form-group">
+                            <label htmlFor="name">全名 / Full Name</label>
+                            <input 
+                                type="text" 
+                                id="name"
+                                name="name"
+                                placeholder="如何稱呼您？" 
+                                required 
+                                value={formData.name}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <label htmlFor="email">電子郵件 / Email Address</label>
+                            <input 
+                                type="email" 
+                                id="email"
+                                name="email"
+                                placeholder="email@example.com" 
+                                required 
+                                value={formData.email}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        
+                        <button type="submit" disabled={loading}>
+                            {loading ? '提交中...' : '提交報名資訊'}
+                        </button>
+                    </form>
+                    
+                    <p style={{ marginTop: '24px', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                        * 我們尊重您的隱私。您的聯絡資訊僅用於 Sparring AI 的專案諮詢。
+                    </p>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('registration-root'));
+        root.render(<RegistrationForm />);
+    </script>
+</body>
+</html>
